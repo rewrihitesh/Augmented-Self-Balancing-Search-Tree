@@ -17,6 +17,11 @@ typedef struct _avl {
 } tree;
 
 
+bool isEmpty(tree* root){
+	if(root->rightPtr == NULL && root->leftPtr == NULL)
+		return true;
+	return false;
+}
 int getHeight(tree* root){
 	if(root == NULL)
 		return 0;
@@ -69,11 +74,6 @@ tree* lr(tree* root){
 		return ll(root);
 }
 
-bool isEmpty(tree* root){
-	if(root->rightPtr == NULL && root->leftPtr == NULL)
-		return true;
-	return false;
-}
 
 int leftCount(tree* root){
 	if(root==NULL)
@@ -207,7 +207,21 @@ int _converse_inorder(tree* root,int breakPoint){
 		} 
 		return -1;
 	}
-int getMedian(tree* avl){
+
+tree* find_K(tree* root, int k){
+	if(!root)
+		return NULL;
+	if(getCount(root->leftPtr)+1 == k)
+		return root;
+	if(k<=getCount(root->leftPtr)){
+		return find_K(root->leftPtr,k);
+	}else{
+		return find_K(root->rightPtr,(k-getCount(root->leftPtr)-1));
+	}
+}
+
+
+float getMedian(tree* avl){
 		counter=0;
 		double tree_total_node= avl->count_nodes;
 		
@@ -219,14 +233,19 @@ int getMedian(tree* avl){
 		if((avl->count_nodes)%2){
 			double double_mid=tree_total_node/2;
 			int median=std::ceil(double_mid);
-			
-			if(median<=left_node_count){
-				return _converse_inorder(avl->leftPtr,left_node_count-median);
-			}else{
-				return _inorder(avl->rightPtr,median-right_node_count);
-			}
+			float x=(float)(find_K(avl,median)->data);
+			return x;
+			// if(median<=left_node_count){
+			// 	return _converse_inorder(avl->leftPtr,left_node_count-median);
+			// }else{
+			// 	return _inorder(avl->rightPtr,median-right_node_count);
+			// }
 		}else{
-				return 0;
+				int median = tree_total_node/2;
+				float x=(float)(find_K(avl,median)->data);
+				float y=(float)(find_K(avl,median+1)->data);
+				return (x+y)/2;
+
 		}
 }
 
@@ -249,17 +268,26 @@ int main(){
 
 	tree* avl = NULL;
 
- 	for(int i=0;i<9;i++){
+ 	for(int i=0;i<11;i++){
 		cin>>val;
 		avl= insertion(avl,val);
-		cout<<"median: "<<getMedian(avl)<<endl;
+		cout<<"Running Median: "<<getMedian(avl)<<endl;
 		}
-
-	// cout<<getKey(avl,60);
-	// cout<<getKey(avl,100);
-
-	//print_tree(avl);
-	//_converse_inorder(avl,3);
 	return 0;
 
+}
+
+tree* _delete(tree* root,int key){
+
+	if(!root)
+		return root;
+	
+	if(key<root->data)
+		root->leftPtr= _delete(root->leftPtr,key);
+
+	if(key>root->data)
+		root->rightPtr= _delete(root->rightPtr,key);
+	
+
+	return root;
 }
