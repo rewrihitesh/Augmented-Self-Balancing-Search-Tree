@@ -1,4 +1,4 @@
-# Augmented AVL Tree
+# Augmented Tree to Implement custom ordered set.
  
 Following Operation can be performed (15)
 
