@@ -1,6 +1,6 @@
 /* @uthor Hitesh Kumar
 	roll no 2019201039
-	Assignment 2 Question 3
+	Assignment 2 Question 2
 */
 
 #include<bits/stdc++.h>
@@ -15,6 +15,34 @@ typedef struct _avl {
 	struct _avl* leftPtr;
 	struct _avl* rightPtr;
 } tree;
+
+
+tree* rr(tree* root);
+tree* ll(tree* root);
+tree* rl(tree* root);
+tree* lr(tree* root);
+tree* getNode(int val);
+tree* insertion(tree* root,int val);
+tree* find_K(tree* root, int k);
+tree* find_Kth_largest(tree* root, int k);
+tree* _delete(tree* root,int val);
+tree* closest_key_node(tree* root, int k,tree* closest_key_root,int min_val);
+void update_count(tree *root);
+void print_tree(tree* root);
+void inverse_print_tree(tree* root);
+bool isEmpty(tree* root);
+bool getKey(tree* avl, int key);
+int getHeight(tree* root);
+int getCount(tree* root);
+int leftCount(tree* root);
+int rightCount(tree* root);
+int update_height(tree* root);
+int _inorder(tree* root,int breakPoint);
+int _converse_inorder(tree* root,int breakPoint);
+int closest_k(tree* root, int k,int closest_key,int min_val);
+int count_range_val(tree* root,int x, int y);
+int pos_k(tree* root, int key);
+float getMedian(tree* avl);
 
 
 bool isEmpty(tree* root){
@@ -40,6 +68,8 @@ void update_count(tree *root){
 
 tree* rr(tree* root){
 	tree* temp= root->rightPtr;
+	if(!temp)
+		return root;
 	root->rightPtr= temp->leftPtr;
 	temp->leftPtr= root;
 	update_count(root);
@@ -53,6 +83,8 @@ tree* rr(tree* root){
 
 tree* ll(tree* root){
 	tree* temp= root->leftPtr;
+	if(!temp)
+		return root;
 	root->leftPtr= temp->rightPtr;
 	temp->rightPtr= root;
 	update_count(root);
@@ -121,6 +153,7 @@ void print_tree(tree* root){
 		print_tree(root->rightPtr);
 }
 
+
 void inverse_print_tree(tree* root){
 		if(root==NULL){
             return ;
@@ -131,42 +164,9 @@ void inverse_print_tree(tree* root){
 		inverse_print_tree(root->leftPtr);
 }
 
-tree* insertion(tree* root,int val){
-	if(root==NULL){
-		tree *newNode=getNode(val);
-		return newNode;
-	}
-	if(root->data <= val){//rr
-		root->rightPtr=insertion(root->rightPtr,val);
-	}else
-	if(root->data > val){
-		root->leftPtr=insertion(root->leftPtr,val);
-	}
-	root->height = update_height(root) + 1;
-
-	int bf = getHeight(root->leftPtr) - getHeight(root->rightPtr);
-	// +ve left skewd else right
-
-	if(bf>=2){
-		if(val>root->leftPtr->data){//lr rotaion
-			return lr(root);
-		}else{//ll
-			return ll(root);
-		}
-	}
-	if(bf<=-2){
-		if(val<root->rightPtr->data){//rl
-			return rl(root);
-		}else{//rr
-			return rr(root);
-		}
-	}
-	
-	update_count(root);
-	return root;
-}
 
 int _inorder(tree* root,int breakPoint){
+		counter=0;
 		stack<tree*> custom_stack;
 		tree* backup_root= root;
 		//cout<<"inorder: "<<breakPoint<<endl;
@@ -184,13 +184,16 @@ int _inorder(tree* root,int breakPoint){
 			counter++;
 			backup_root= backup_root->rightPtr;
 		} 
+		//handle -1 here
 	return -1;	
 }
 
+
+
 int _converse_inorder(tree* root,int breakPoint){
+		counter=0;
 		stack<tree*> custom_stack;
 		tree* backup_root= root;
-		
 		while(backup_root || !custom_stack.empty()){
 			while(backup_root){
 				custom_stack.push(backup_root);
@@ -220,6 +223,10 @@ tree* find_K(tree* root, int k){
 	}
 }
 
+tree* find_Kth_largest(tree* root, int k){
+	int total_size_tree=getCount(root);
+	return find_K(root, total_size_tree-k+1);
+}
 
 float getMedian(tree* avl){
 		counter=0;
@@ -235,11 +242,6 @@ float getMedian(tree* avl){
 			int median=std::ceil(double_mid);
 			float x=(float)(find_K(avl,median)->data);
 			return x;
-			// if(median<=left_node_count){
-			// 	return _converse_inorder(avl->leftPtr,left_node_count-median);
-			// }else{
-			// 	return _inorder(avl->rightPtr,median-right_node_count);
-			// }
 		}else{
 				int median = tree_total_node/2;
 				float x=(float)(find_K(avl,median)->data);
@@ -262,32 +264,234 @@ bool getKey(tree* avl, int key){
 	return false;
 }
 
-int main(){
+int closest_k(tree* root, int k,int closest_key= -1 ,int min_val=INT_MAX){
 
-	int val;
-
-	tree* avl = NULL;
-
- 	for(int i=0;i<11;i++){
-		cin>>val;
-		avl= insertion(avl,val);
-		cout<<"Running Median: "<<getMedian(avl)<<endl;
+		if(!root)
+			return closest_key;
+		if(abs(root->data-k)<=min_val){
+			//update the key_closest and min_val
+			min_val=abs(root->data-k);
+			closest_key=root->data;
 		}
-	return 0;
 
+		if(root->data == k)
+			return k;
+		if(k>root->data)// go left
+			return closest_k(root->rightPtr,k,closest_key,min_val);
+		if(k<root->data)// go left
+			return closest_k(root->leftPtr,k,closest_key,min_val);
+		return closest_key;
 }
 
-tree* _delete(tree* root,int key){
+tree* closest_key_node(tree* root, int k,tree* closest_key_root= NULL ,int min_val=INT_MAX){
+
+		if(!root)
+			return closest_key_root;
+		if(abs(root->data-k)<min_val){
+			//update the key_closest and min_val
+			min_val=abs(root->data-k);
+			closest_key_root=root;
+		}
+
+		if(root->data == k)
+			return root;
+		if(k>root->data)// go left
+			return closest_key_node(root->rightPtr,k,closest_key_root,min_val);
+		if(k<root->data)// go left
+			return closest_key_node(root->leftPtr,k,closest_key_root,min_val);
+		
+		return closest_key_root;
+}
+
+int pos_k(tree* root, int key){
+	if(root->data == key)
+		return getCount(root->leftPtr) + 1;
+	if(key<root->data){
+		return pos_k(root->leftPtr,key);
+	}
+	if(key>root->data){
+		return (getCount(root)-getCount(root->rightPtr)) + pos_k(root->rightPtr,key);
+	}
+}
+
+int count_range_val(tree* root,int x, int y){
+			int balance_out_factor = 0;
+			if(x>y){
+				//swap
+				int temp=x;
+				x=y;
+				y=temp;
+			}
+			int temp_x = closest_k(root, x);
+			if(temp_x<x){
+				balance_out_factor+=1;
+			}
+			int temp_pos_x=pos_k(root,temp_x);
+			int temp_y = closest_k(root, y);
+			if(temp_y>y){
+				balance_out_factor+=1;
+			}
+			int temp_pos_y=pos_k(root,temp_y);
+			return (temp_pos_y - temp_pos_x)+1 - balance_out_factor;
+}
+
+tree* insertion(tree* root,int val){
+	if(root==NULL){
+		tree *newNode=getNode(val);
+		return newNode;
+	}
+	if(root->data < val){//rr
+		root->rightPtr=insertion(root->rightPtr,val);
+	}else
+	if(root->data > val){
+		root->leftPtr=insertion(root->leftPtr,val);
+	}
+	root->height = update_height(root) + 1;
+
+	int bf = getHeight(root->leftPtr) - getHeight(root->rightPtr);
+	// +ve left skewd else right
+
+	if(bf>=2){
+		if(val>root->leftPtr->data){//lr rotaion
+			return lr(root);
+		}else{//ll
+			return ll(root);
+		}
+	}
+	if(bf<=-2){
+		if(val<root->rightPtr->data){//rl
+			return rl(root);
+		}else{//rr
+			return rr(root);
+		}
+	}
+	
+	update_count(root);
+	return root;
+}
+
+tree* _inorder_successor(tree* root){
+		if(!root->leftPtr)
+			return root;
+		return _inorder_successor(root->leftPtr);		
+}
+
+tree* _delete(tree* root,int val){
 
 	if(!root)
 		return root;
 	
-	if(key<root->data)
-		root->leftPtr= _delete(root->leftPtr,key);
-
-	if(key>root->data)
-		root->rightPtr= _delete(root->rightPtr,key);
+	if(root->data>val)
+		root->leftPtr= _delete(root->leftPtr,val);
 	
+	if(root->data<val)
+		root->rightPtr= _delete(root->rightPtr,val);
+	
+	if(root->data == val)
+	if(root->leftPtr != NULL && root->rightPtr !=NULL){
+			//two child case
+		tree* temp= _inorder_successor(root->rightPtr);
+		root->data= temp->data;
+		root->rightPtr= _delete(root->rightPtr,temp->data);
+	}else{
+		if(root->leftPtr == NULL && root->rightPtr ==NULL){
+			// zero child case
+			tree* t= root;
+			free(t);
+			root= NULL;
+				
+		}else{
+			// one child case
+			if(root->leftPtr == NULL){
+				tree* t= root;
+				root= root->rightPtr;
+				free(t);
+		}else{
+				tree* t= root;
+				root= root->leftPtr;
+				free(t);
+			}
+		}
 
+	}
+	//after deletion
+	//single node
+	if(!root)
+		return root;
+
+	// copy pasted insertion ;)
+
+	root->height = update_height(root) + 1;
+
+	int bf = getHeight(root->leftPtr) - getHeight(root->rightPtr);
+	// +ve left skewd else right
+
+	if(bf>=2){
+		if(val>root->leftPtr->data){//lr rotaion
+			return lr(root);
+		}else{//ll
+			return ll(root);
+		}
+	}
+	if(bf<=-2){
+		if(val<root->rightPtr->data){//rl
+			return rl(root);
+		}else{//rr
+			return rr(root);
+		}
+	}
+	
+	update_count(root);
 	return root;
 }
+
+
+int main(){
+
+	int val;
+
+	int n;
+	cin>>n;
+
+	//std::fstream testfile("range_input_testcase.txt", std::ios_base::in);
+    //testfile>>n;
+
+	tree* avl = NULL;
+ 	for(int i=0;i<n;i++){
+		cin>>val;
+		//testfile>>val;
+		avl= insertion(avl,val);
+		
+		}
+		/*std::fstream optestfile("testq2.txt", std::ios_base::in);
+		int b;
+		int k;
+		int l;
+		optestfile>>b;
+		while(b--){
+			optestfile>>k;
+			//optestfile>>l;
+			//cout<<"-----------------";
+			//cout<<pos_k(avl,k)<<endl;
+			//cin>>k;
+			//tree* temp= closest_key_node(avl,k); 
+			// cout<<"closest val to "<<k<<"is "<<temp->data<<endl;
+			// tree* temp1= closest_key_node(avl,l); 
+			// cout<<"closest val to "<<l<<"is "<<temp1->data<<endl;
+			
+			// cout<<"left "<<leftCount(temp)<<endl;
+			// cout<<"right "<<rightCount(temp)<<endl;
+			//cout<<"present: "<<getKey(avl,k)<<endl;
+
+			//cout<<count_range_val(avl,k,l)<<endl;
+			//_delete(avl,k);
+			
+			//print_tree(avl);
+
+			//cout<<find_Kth_largest(avl,k)->data<<endl;
+
+		}*/
+	return 0;
+
+}
+	
