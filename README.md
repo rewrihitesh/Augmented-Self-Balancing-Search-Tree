@@ -1,4 +1,4 @@
-# AUgmented AVL Tree
+# Augmented AVL Tree
  
 Following Operation can be performed (15)
 
